@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1320">
+<title>Deal or No Deal Indonesia</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0e1320;
+    --panel: #151c2a;
+    --line: #2b3342;
+    --ink: #fff6e6;
+    --muted: #b2b9c8;
+    --gold: #f4ce84;
+    --deep-gold: #aa7135;
+    --serif: Georgia, 'Times New Roman', serif;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--ink);
+    background: radial-gradient(ellipse at 50% -8%, #302620, transparent 41rem), var(--bg);
+  }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, summary:focus-visible { outline: 2px solid #ffe1a1; outline-offset: 3px; }
+  button:disabled { cursor: default; }
+  .shell { max-width: 1280px; padding: 0 clamp(12px, 3vw, 40px); margin: auto; }
+  .top {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: max(4px, env(safe-area-inset-top)) 0 4px; margin-bottom: 8px;
+    border-bottom: 1px solid #f4ce8426;
+  }
+  .actions { display: flex; gap: 6px; }
+  .button {
+    border: 1px solid #515061; border-radius: 8px; min-height: 44px;
+    padding: 9px 15px; color: var(--ink); background: #202636; font-weight: 650;
+  }
+  .button:hover { background: #30374a; }
+  .top .button { font-size: .75rem; padding-inline: clamp(7px, 1.4vw, 14px); }
+  .primary { color: #241506; background: linear-gradient(135deg, #ffdda0, #deb06a); border-color: #f4ce84; }
+  .primary:hover { background: #ffe3a8; }
+  .masthead { min-width: 0; }
+  .masthead p { margin: 2px 0 0; }
+  .eyebrow { color: var(--gold); font-size: .67rem; font-weight: 700; letter-spacing: .21em; text-transform: uppercase; }
+  .masthead h1 {
+    font: 700 clamp(1.2rem, 3.4vw, 2.1rem)/1.05 var(--serif); letter-spacing: -.055em;
+    margin: 0; color: #ffe5b1; text-shadow: 0 5px 24px #0007;
+  }
+  .masthead i { font-size: .63em; color: #e5ba79; font-weight: 400; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(232px, 300px); align-items: start; gap: 16px; }
+  .stage, .board, .history {
+    overflow: hidden; border: 1px solid var(--line); border-radius: 17px;
+    box-shadow: 0 16px 35px #07091065;
+  }
+  .stage {
+    padding: clamp(8px, 1.25vw, 16px);
+    background: radial-gradient(ellipse at top, #f4ce840e, transparent 65%), var(--panel);
+  }
+  .stage-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding-bottom: 6px; }
+  .stage-label { margin: 0; font: 700 1.05rem var(--serif); }
+  .pill { background: #212735; color: #f2ddad; border: 1px solid #514534; border-radius: 30px; padding: 5px 9px; font-weight: 700; font-size: .68rem; text-align: center; }
+  .status { border-block: 1px solid #f4ce8421; padding: 5px 0; margin: 0 0 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .status h2 { margin: 0 0 4px; font: 700 clamp(1rem, 2.2vw, 1.45rem)/1.1 var(--serif); }
+  .status p { color: var(--muted); margin: 0; font-size: .8rem; line-height: 1.38; }
+  .counter { flex: 0 0 auto; min-width: 46px; text-align: center; font: 700 1.45rem var(--serif); color: var(--gold); }
+  .counter small { display: block; font: 650 .57rem system-ui, sans-serif; letter-spacing: .11em; text-transform: uppercase; color: var(--muted); }
+  .cases { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: clamp(6px, 1.1vw, 12px); }
+  .case {
+    position: relative; display: grid; place-items: center; min-width: 0; min-height: 45px; width: 100%;
+    height: clamp(45px, 5.8vw, 65px); isolation: isolate; padding: 10px 0 1px;
+    border: 1px solid #fed994; border-radius: 8px; color: #302013;
+    background: repeating-linear-gradient(90deg, #fff4d51f 0 1px, transparent 1px 5px),
+      linear-gradient(150deg, #fce4ad, #dbac63 56%, #ac6d31);
+    background-clip: content-box;
+    border-color: transparent;
+    transition: transform .16s ease, filter .16s ease;
+  }
+  .case::before {
+    content: ""; position: absolute; inset: 9px 0 0; border: 1px solid #ffe1a1;
+    border-radius: 7px; box-shadow: inset 0 0 0 2px #45280538, 0 3px 3px #0005; pointer-events: none;
+  }
+  .case::after {
+    content: ""; position: absolute; top: 3px; left: 50%; width: 26%; height: 8px;
+    transform: translateX(-50%); border: 2px solid #e8bd7a; border-bottom: 0; border-radius: 4px 4px 0 0;
+  }
+  .case .number {
+    display: grid; place-items: center; width: 46%; min-width: 22px; padding: 1px;
+    border: 1px solid #ffe8b2a8; border-radius: 4px; background: #241a16; color: #ffe0a4;
+    box-shadow: 0 1px 4px #643d24; font: 700 clamp(.86rem, 1.65vw, 1.2rem)/1.25 var(--serif);
+  }
+  .case:not(:disabled):hover { transform: translateY(-3px); filter: brightness(1.16); }
+  .case:not(:disabled):active { transform: translateY(1px); }
+  .case.spent { background: #1b2231; background-clip: content-box; }
+  .case.spent::before { border-color: #394151; box-shadow: none; }
+  .case.spent::after { border-color: #596273; }
+  .case.spent .number { color: #9ca5b6; background: #232a3a; border-color: #3a4456; box-shadow: none; }
+  .case.held { background: linear-gradient(145deg, #913633, #4b2029); background-clip: content-box; }
+  .case.held::before { border-color: #ed9e80; }
+  .case.held::after { border-color: #ed9e80; }
+  .case.held .number { background: #431b22; color: #ffdbbf; }
+  .stage-foot {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 14px;
+    min-height: 47px; margin-top: 6px; padding-top: 2px; border-top: 1px solid #f4ce8421;
+    color: var(--muted); font-size: .76rem;
+  }
+  .stage-foot strong { color: var(--gold); }
+  .board { background: #131924; }
+  .board h2 { margin: 0; padding: 14px 12px 10px; font: 700 1.05rem var(--serif); text-align: center; }
+  .prizes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 9px 11px; gap: 4px 6px; }
+  .prize {
+    padding: 5px 4px; border-radius: 4px; border: 1px solid #3b465c; background: #20293c;
+    color: #ebeff8; text-align: center; font-size: clamp(.64rem, 1.25vw, .76rem);
+    font-weight: 680; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .prize.high { border-color: #665137; background: linear-gradient(100deg, #43311e, #36291d); color: #ffe1a5; }
+  .prize.out { color: #9ba4b6; background: #161b25; border-color: #293242; text-decoration: line-through; }
+  .prize.last { outline: 1px solid #eeae8e; outline-offset: -1px; }
+  .prize.final-prize {
+    color: #251707; background: #f4ce84; border-color: #ffe3a4; text-decoration: none;
+  }
+  .board-note { margin: 0; padding: 0 9px 12px; color: var(--muted); font-size: .66rem; text-align: center; }
+  .history { margin-top: 16px; background: #111722; }
+  .history-head {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    gap: 4px 12px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+  }
+  .history-head h2 { margin: 0; font: 700 1.06rem var(--serif); }
+  .history-head p { margin: 0; color: var(--muted); font-size: .73rem; }
+  .history-list {
+    margin: 0; padding: 5px clamp(10px, 3vw, 16px); list-style: none; max-height: 230px;
+    overflow: auto; overscroll-behavior: contain; scrollbar-color: #6b573f #141a28;
+    font: .78rem/1.45 ui-monospace, Consolas, monospace;
+  }
+  .history-list li { display: grid; grid-template-columns: 5ch minmax(0, 1fr); gap: 8px; padding: 7px 0; }
+  .history-list li + li { border-top: 1px solid #293142; }
+  .history-list time { color: #9faac0; }
+  .history-list .key { color: var(--gold); }
+  .page-foot { margin: 16px auto 0; padding: 0 0 max(18px, env(safe-area-inset-bottom)); text-align: center; color: var(--muted); font-size: .7rem; }
+  dialog {
+    width: min(440px, calc(100% - 24px)); max-height: calc(100% - 24px); margin: auto;
+    border: 1px solid #896b4d; border-radius: 16px; padding: clamp(16px, 4vw, 28px);
+    background: radial-gradient(ellipse at top, #3e2c23, #1a202e 72%); color: var(--ink);
+    text-align: center; box-shadow: 0 14px 75px #000b; overflow: auto;
+  }
+  dialog::backdrop { background: #070b15bb; backdrop-filter: blur(4px); }
+  dialog h2 { margin: 5px 0 10px; font: 700 clamp(1.5rem, 4.5vw, 2.2rem)/1.1 var(--serif); }
+  dialog p { color: #d6d7df; font-size: .87rem; line-height: 1.5; margin: 9px 0; }
+  dialog .eyebrow { color: var(--gold); font-size: .67rem; margin-top: 0; }
+  .amount { color: #ffdf9c; margin: 12px 0; font: 700 clamp(1.65rem, 7.8vw, 2.9rem)/1.05 var(--serif); overflow-wrap: anywhere; }
+  .dialog-actions { display: flex; gap: 8px; margin-top: 17px; flex-wrap: wrap; }
+  .dialog-actions .button { flex: 1 1 115px; }
+  dialog.cinematic {
+    width: min(510px, calc(100% - 20px));
+    background: radial-gradient(ellipse at 50% 0%, #674625 0%, #29232a 45%, #151a27 82%);
+    border-color: #d5a465;
+  }
+  .scene-display { display: grid; place-items: center; margin: 11px 0; }
+  .scene-emblem {
+    display: grid; place-items: center; position: relative; width: 72px; height: 72px;
+    border: 1px solid #ce9c62; border-radius: 50%;
+    background: radial-gradient(circle, #5a3e2c, #291e22 80%);
+    box-shadow: 0 0 24px #edbc6738, inset 0 0 0 5px #e3a56517;
+    color: #ffe2a4; font: 700 2.2rem/1 var(--serif);
+  }
+  .scene-emblem.beat { animation: suspense .48s ease-out; }
+  .scene-emblem.phone, .scene-emblem.mic { font: 1.65rem/1 "Segoe UI Symbol", system-ui, sans-serif; }
+  .scene-emblem.phone { animation: ringing 1.5s infinite; }
+  .scene-emblem.mic { animation: suspense 1.1s ease-out infinite alternate; }
+  .cases .case { container-type: inline-size; overflow: visible; }
+  .cases .case.lid-open { background: #231c1a; background-clip: content-box; }
+  .cases .case::before { transform-origin: top; transition: transform .32s ease-out; }
+  .cases .case.lid-open::before {
+    transform: perspective(200px) rotateX(119deg);
+    background: linear-gradient(140deg, #f4cf89, #8b582e);
+    border-color: #e1b772;
+  }
+  .cases .case.lid-open::after { visibility: hidden; }
+  .cases .case .number, .case-count, .case-ticket { position: relative; }
+  .cases .case.spent .number {
+    position: absolute; top: 3px; left: 0; right: 0; margin: auto;
+    min-width: 16px; width: max-content; padding: 0 3px; font-size: .61rem;
+  }
+  .case-count {
+    position: absolute; inset: 10px 0 0; z-index: 2; display: grid; place-items: center;
+    border-radius: 6px; background: #332015d9; color: #ffe1a1; font: 700 1.5rem var(--serif);
+  }
+  .case-count.beat { animation: suspense .42s ease-out; }
+  .case-ticket {
+    z-index: 1; white-space: nowrap; line-height: 1; align-self: end; margin-bottom: 4px;
+    color: #ffe4af; font: 700 9px/1.1 system-ui, sans-serif;
+    font-size: clamp(7px, 11.5cqi, 13px);
+    font-variant-numeric: tabular-nums; animation: ticket-in .27s ease-out both;
+  }
+  .cases .case.spent:not(.lid-open) .case-ticket { color: #e2e6ee; }
+  .cases .case.final-case::before { border-color: #fff0b8; }
+  .cases .case.final-case { outline: 2px solid #f4ce84; outline-offset: 1px; }
+  .cases .case.final-case .case-ticket { color: #fff5d0; }
+  .cases .case.selecting { animation: suspense .6s ease-out infinite alternate; }
+  .cases .case.held { outline: 1px solid #ed9e80; outline-offset: 1px; }
+  .status { block-size: 70px; flex-wrap: nowrap; }
+  .status > div:first-child { min-width: 0; }
+  .status h2 { overflow-wrap: anywhere; }
+  .stage-foot .button { margin-left: auto; }
+  .stage-foot { align-items: center; }
+  @keyframes ticket-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  .cinematic.decision h2 {
+    color: #ffe0a0; font-size: clamp(2.35rem, 11vw, 4.2rem);
+    text-shadow: 0 0 32px #ffbc6466;
+    animation: decision-splash .55s cubic-bezier(.2, .8, .28, 1) both;
+  }
+  .cinematic.decision.rejected {
+    background: radial-gradient(ellipse at top, #693333, #241e2a 52%, #151a27 86%);
+  }
+  .cinematic.decision.rejected h2 { color: #ffd1b9; text-shadow: 0 0 30px #ef8c6664; }
+  @keyframes decision-splash {
+    from { opacity: 0; transform: scale(.68) translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+  .scene-speakers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+  .speaker {
+    display: flex; justify-content: center; align-items: center; gap: 6px;
+    border: 1px solid #594b49; border-radius: 7px; padding: 5px 6px;
+    background: #171b26; color: #d0c6c5; font-size: .73rem; font-weight: 650;
+  }
+  .speaker.active { color: #ffe4a9; border-color: #e3ae6d; background: #3d2b24; }
+  .meter { display: flex; align-items: center; height: 13px; gap: 2px; }
+  .meter i { width: 2px; height: 10px; border-radius: 2px; background: currentColor; transform: scaleY(.26); }
+  .speaker.active .meter i { animation: speaking .58s ease-in-out infinite alternate; }
+  .speaker.active .meter i:nth-child(2) { animation-delay: -.4s; }
+  .speaker.active .meter i:nth-child(3) { animation-delay: -.22s; }
+  .scene-line { display: grid; align-content: center; min-height: 4.15em; padding: 2px; }
+  .scene-line p { margin: 0; color: #fff3df; }
+  .scene-line .amount { font-size: clamp(1.42rem, 6vw, 2.3rem); margin: 5px 0 0; }
+  .scene-progress {
+    display: grid; grid-template-columns: minmax(0, 1fr) 6ch; align-items: center; gap: 9px;
+    color: #e9c68b; margin-top: 10px; font: 700 .73rem ui-monospace, Consolas, monospace;
+  }
+  .scene-track { overflow: hidden; height: 4px; border-radius: 4px; background: #594439; }
+  .scene-track span { display: block; width: 100%; height: 100%; background: #f5c777; transform-origin: left; }
+  @keyframes suspense { from { transform: scale(.88); filter: brightness(1.35); } to { transform: none; } }
+  @keyframes ringing {
+    0%, 45%, 100% { transform: rotate(0); }
+    8%, 25% { transform: rotate(-12deg); }
+    16%, 36% { transform: rotate(12deg); }
+  }
+  @keyframes speaking { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+  .rules { padding-left: 20px; text-align: left; color: #d6d7df; font-size: .87rem; line-height: 1.46; }
+  .rules li + li { margin-top: 8px; }
+  .offer-history { margin-top: 16px; padding-top: 12px; border-top: 1px solid #f4ce8433; text-align: left; }
+  .offer-history h3 { margin: 0 0 7px; font-size: .85rem; color: #ffe2a4; }
+  .offer-history p { margin: 0; }
+  .offer-history ul { list-style: none; margin: 0; padding: 0; }
+  .offer-history li {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 3px 12px;
+    padding: 6px 0; color: #d6d7df; font-size: .81rem;
+  }
+  .offer-history li + li { border-top: 1px solid #f4ce841a; }
+  .offer-history strong { color: #fff0cf; font-variant-numeric: tabular-nums; }
+  .reveal { animation: appear .22s ease-out; }
+  @keyframes appear { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  @media (max-width: 650px) and (orientation: portrait), (max-width: 500px) {
+    .layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .cases { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .board h2 { padding: 7px 8px 5px; }
+    .prizes { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 0 6px 7px; }
+    .prize { padding: 3px 1px; font-size: clamp(.5rem, 2.05vw, .72rem); }
+    .board-note { padding-bottom: 6px; }
+  }
+  @media (max-width: 355px) { .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 270px) {
+    .top { flex-wrap: wrap; }
+    .cases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .prizes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (orientation: landscape) and (max-height: 540px) {
+    .layout { gap: 10px; grid-template-columns: minmax(0, 1fr) minmax(208px, 31%); }
+    .top { padding-block: 3px; }
+    .stage { padding: 11px; }
+    .status { padding-block: 4px; }
+    .case { height: 45px; }
+    .prize { padding-block: 3px; }
+    dialog.cinematic { padding-block: 10px; }
+    .cinematic h2 { font-size: 1.4rem; margin: 3px 0; }
+    .scene-display { margin: 5px 0; }
+    .scene-emblem { width: 43px; height: 43px; font-size: 1.55rem; }
+    .scene-emblem.phone, .scene-emblem.mic { font-size: 1.2rem; }
+    .scene-speakers { margin: 4px 0; }
+    .scene-line { min-height: 3.35em; }
+    .scene-progress { margin-top: 5px; }
+  }
+  @media (orientation: landscape) and (max-width: 530px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (orientation: landscape) and (max-width: 800px) {
+    .cases { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  .menu-screen {
+    min-height: 100vh; min-height: 100svh; display: grid; place-items: center;
+    padding: max(18px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+  }
+  .menu-card {
+    width: min(100%, 460px); padding: clamp(20px, 6vw, 38px); border-radius: 17px;
+    border: 1px solid #896b4d; background: radial-gradient(ellipse at top, #3e2c23, #1a202e 72%);
+    box-shadow: 0 16px 60px #070910a6; text-align: center;
+  }
+  .menu-card h1, .menu-card h2 {
+    margin: 0 0 10px; color: #ffe5b1;
+    font: 700 clamp(1.65rem, 6vw, 2.55rem)/1.12 var(--serif);
+  }
+  .menu-card p { color: var(--muted); }
+  .menu-card .eyebrow { margin: 0 0 22px; color: var(--gold); }
+  .menu-buttons { display: grid; gap: 8px; }
+  .menu-card label { display: block; text-align: left; margin: 17px 0 7px; font-size: .9rem; }
+  .menu-card input {
+    width: 100%; padding: 11px 12px; font: inherit; color: var(--ink);
+    border: 1px solid #697084; border-radius: 8px; background: #151c2a;
+  }
+  .menu-card input:focus-visible { outline: 2px solid #ffe1a1; outline-offset: 2px; }
+  .winner-list { padding: 0; margin: 14px 0; list-style: none; max-height: min(50vh, 360px); overflow: auto; }
+  .winner-list li {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--line); text-align: left;
+  }
+  .winner-list span { min-width: 0; overflow-wrap: anywhere; }
+  .winner-list strong { color: var(--gold); white-space: nowrap; }
+  #loading-seconds { font-size: 2.5rem; margin: 12px 0 0; }
+  .player-name {
+    align-self: center; color: var(--gold); font-size: .75rem; max-width: min(26vw, 240px);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #game-screen .actions { min-height: 44px; padding-right: clamp(58px, 8vw, 70px); }
+  .screen-pause {
+    position: fixed; z-index: 1; top: max(4px, env(safe-area-inset-top));
+    right: calc(max(12px, 3vw, (100vw - 1280px) / 2 + clamp(12px, 3vw, 40px)));
+    font-size: .75rem; padding-inline: clamp(7px, 1.4vw, 14px);
+  }
+  body:has(#dialog[open]) #pause { visibility: hidden; }
+  #pause-dialog .menu-buttons { margin-top: 17px; }
+  .history-head { cursor: pointer; list-style: none; border-bottom: 0; }
+  .history-head::-webkit-details-marker { display: none; }
+  .history-head::before { content: "▸"; color: var(--gold); }
+  .history[open] .history-head { border-bottom: 1px solid var(--line); }
+  .history[open] .history-head::before { content: "▾"; }
+  .history-head h2 { flex: 1; }
+  .status p, #dialog-content p, .history-list li > span { overflow-wrap: anywhere; }
+  .case.arrival-pending { visibility: hidden; }
+  .case.arrival-enter { animation: case-arrival .64s ease-out both; }
+  @keyframes case-arrival {
+    from { opacity: 0; transform: translateY(14px) scale(.83); }
+    to { opacity: 1; transform: none; }
+  }
+  .prize-trigger { display: none; }
+  #prize-dialog[open] { animation: appear .22s ease-out; }
+  #prize-dialog .board { border: 0; background: transparent; box-shadow: none; }
+  #prize-dialog #board-title { font: inherit; padding: 0; }
+  #prize-dialog .prizes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #prize-dialog .prize { font-size: .76rem; }
+  @media (pointer: coarse) and (max-width: 650px) and (orientation: portrait), (pointer: coarse) and (max-width: 1050px) and (max-height: 540px) and (orientation: landscape) {
+    .shell { padding-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right)); }
+    .layout { display: block; }
+    .top { margin-bottom: 5px; min-height: 42px; }
+    .masthead h1 { font-size: clamp(.86rem, 4.1vw, 1.25rem); }
+    .masthead .eyebrow { font-size: .53rem; letter-spacing: .1em; }
+    #game-screen .actions { min-height: 36px; padding-right: 0; }
+    #game-screen .top .button, .modal-prize-trigger, .screen-pause {
+      min-height: 36px; padding: 5px 7px; font-size: .68rem; white-space: nowrap;
+    }
+    #pause { position: static; }
+    .prize-trigger { display: inline-block; }
+    .scene-controls {
+      position: fixed; display: flex; gap: 5px; z-index: 1;
+      top: max(4px, env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right));
+    }
+    .scene-controls .screen-pause { position: static; }
+    .stage { padding: 6px; border-radius: 12px; }
+    .stage-label { font-size: .95rem; }
+    .stage-top { padding-bottom: 4px; }
+    .player-name {
+      max-width: min(40vw, 220px); text-align: right; font-size: .68rem;
+    }
+    .status { block-size: 58px; margin-bottom: 4px; }
+    .status h2 { font-size: .9rem; margin-bottom: 2px; }
+    .status p { font-size: .69rem; line-height: 1.2; }
+    .status h2, .status p {
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    }
+    .cases { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+    .cases .case { height: clamp(36px, 7.6svh, 59px); min-height: 0; padding-top: 8px; }
+    .cases .case::before { inset-block-start: 7px; }
+    .cases .case::after { top: 1px; }
+    .case-count { inset-block-start: 8px; }
+    .case-ticket { font-size: clamp(6px, 10.5cqi, 11px); margin-bottom: 2px; }
+    .stage-foot { min-height: 39px; margin-top: 4px; gap: 2px 6px; font-size: .65rem; }
+    .stage-foot .button { min-height: 34px; padding: 4px 9px; font-size: .75rem; }
+    .history { margin-top: 6px; }
+    .history-head { padding: 7px 9px; }
+    .history-head h2 { font-size: .87rem; }
+    .page-foot { margin-top: 6px; padding-bottom: max(4px, env(safe-area-inset-bottom)); font-size: .6rem; }
+  }
+  @media (pointer: coarse) and (orientation: portrait) and (max-width: 650px) and (max-height: 600px) {
+    .cases { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  }
+  @media (pointer: coarse) and (orientation: landscape) and (max-width: 1050px) and (max-height: 540px) {
+    .cases { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+    .cases .case { height: clamp(28px, 11.5svh, 48px); }
+    .status { block-size: 51px; }
+    #prize-dialog .prizes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 330px) {
+    .cases { grid-template-columns: repeat(13, minmax(0, 1fr)); }
+  }
+  .music-controls { display: grid; gap: 12px; margin: 18px 0; text-align: left; }
+  .music-controls label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
+  .music-controls input { accent-color: var(--gold); }
+  .music-controls input[type="range"] { width: 100%; margin: 0; padding: 0; border: 0; }
+  .music-controls input[role="switch"] {
+    appearance: none; display: inline-flex; flex: 0 0 44px; width: 44px; height: 24px; padding: 3px;
+    margin: 0; border: 1px solid #756b6a; border-radius: 99px; background: #252b3a; cursor: pointer;
+  }
+  .music-controls input[role="switch"]::before {
+    content: ""; width: 16px; height: 16px; background: #ece3d4; border-radius: 50%;
+  }
+  .music-controls input[role="switch"]:checked { background: #b78240; border-color: var(--gold); justify-content: end; }
+  .music-controls input:focus-visible { outline: 2px solid #ffe1a1; outline-offset: 3px; }
+  .music-volume { display: grid; gap: 6px; }
+  .music-volume output { color: var(--gold); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <main class="menu-screen" id="menu-screen">
+    <section class="menu-card" id="main-menu" aria-labelledby="menu-title">
+      <h1 id="menu-title">Deal <i>or</i> No Deal</h1>
+      <p class="eyebrow">Versi Indonesia</p>
+      <nav class="menu-buttons" aria-label="Menu utama">
+        <button class="button primary" id="start-menu" type="button">Mulai Main</button>
+        <button class="button" id="winners-menu" type="button">Daftar Pemenang</button>
+        <button class="button" id="rules-menu" type="button">Cara Main</button>
+        <button class="button" id="settings-menu" type="button">Pengaturan</button>
+        <button class="button" id="exit-menu" type="button">Keluar</button>
+      </nav>
+    </section>
+    <section class="menu-card" id="name-menu" aria-labelledby="name-title" hidden>
+      <h2 id="name-title">Mulai Main</h2>
+      <form id="name-form">
+        <label for="player-input">Nama pemain</label>
+        <input id="player-input" name="player" type="text" required maxlength="60" autocomplete="off">
+        <div class="dialog-actions">
+          <button class="button" type="button" data-main-menu>Kembali</button>
+          <button class="button primary" type="submit">Mulai</button>
+        </div>
+      </form>
+    </section>
+    <section class="menu-card" id="loading-menu" aria-labelledby="loading-title" hidden>
+      <h2 id="loading-title">Menyiapkan permainan</h2>
+      <p id="loading-player"></p>
+      <div class="amount" id="loading-seconds" aria-hidden="true"></div>
+    </section>
+    <section class="menu-card" id="winners-panel" aria-labelledby="winners-title" hidden>
+      <h2 id="winners-title" tabindex="-1">Daftar Pemenang</h2>
+      <p id="winners-empty" hidden>Belum ada permainan yang selesai.</p>
+      <p id="winners-storage" hidden>Hasil hanya tersedia selama halaman ini terbuka.</p>
+      <ol class="winner-list" id="winner-list"></ol>
+      <button class="button primary" type="button" data-main-menu>Kembali</button>
+    </section>
+    <section class="menu-card" id="rules-panel" aria-labelledby="rules-title" hidden>
+      <h2 id="rules-title" tabindex="-1">Cara Main</h2>
+      <ol class="rules"></ol>
+      <button class="button primary" type="button" data-main-menu>Kembali</button>
+    </section>
+    <section class="menu-card" id="settings-panel" aria-labelledby="settings-title" hidden>
+      <h2 id="settings-title" tabindex="-1">Pengaturan</h2>
+      <div class="music-controls">
+        <label for="menu-music">
+          Nyalakan musik
+          <input type="checkbox" id="menu-music" role="switch" data-music-enabled checked>
+        </label>
+        <div class="music-volume">
+          <label for="menu-volume">Volume musik <output for="menu-volume">70%</output></label>
+          <input type="range" id="menu-volume" data-music-volume min="0" max="100" value="70">
+        </div>
+      </div>
+      <button class="button primary" type="button" data-main-menu>Kembali</button>
+    </section>
+    <section class="menu-card" id="exit-panel" aria-labelledby="exit-title" hidden>
+      <h2 id="exit-title" tabindex="-1">Keluar dari game?</h2>
+      <div class="dialog-actions">
+        <button class="button" type="button" data-main-menu>Kembali</button>
+        <button class="button primary" id="confirm-exit" type="button">Keluar</button>
+      </div>
+    </section>
+    <section class="menu-card" id="closed-panel" aria-labelledby="closed-title" hidden>
+      <h2 id="closed-title" tabindex="-1">Game ditutup</h2>
+      <p>Tutup tab ini untuk keluar.</p>
+      <button class="button" type="button" data-main-menu>Kembali ke Menu Utama</button>
+    </section>
+  </main>
+  <div class="shell" id="game-screen" hidden>
+    <header class="top">
+      <div class="masthead">
+        <h1>Deal <i>or</i> No Deal</h1>
+        <p class="eyebrow">Versi Indonesia</p>
+      </div>
+      <div class="actions">
+        <span class="player-name" id="player-name"></span>
+        <button class="button prize-trigger" id="show-prizes" type="button" aria-haspopup="dialog">Papan Hadiah</button>
+        <button class="button screen-pause" id="pause" type="button" aria-haspopup="dialog">Pause</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="stage" aria-labelledby="stage-label">
+        <div class="stage-top">
+          <h2 class="stage-label" id="stage-label">Panggung koper</h2>
+          <span class="pill" id="phase"></span>
+          <span class="player-name" id="mobile-player-name" hidden></span>
+        </div>
+        <div class="status" id="status" aria-live="polite" aria-atomic="true">
+          <div>
+            <h2 id="prompt"></h2>
+            <p id="instruction"></p>
+          </div>
+          <div class="counter" id="counter" hidden>
+            <span id="quota"></span><small>Perlu dibuka</small>
+          </div>
+        </div>
+        <div class="cases" id="cases" aria-label="Daftar koper"></div>
+        <div class="stage-foot">
+          <span>Koper dibuka saat ronde <strong id="opened"></strong></span>
+          <span id="last" hidden></span>
+          <button id="case-stage-action" class="button primary" hidden></button>
+        </div>
+      </section>
+
+      <section class="board" id="prize-board" aria-labelledby="board-title">
+        <h2 id="board-title">Papan hadiah</h2>
+        <div class="prizes" id="prizes"></div>
+        <p class="board-note">Nominal tercoret sudah terungkap.</p>
+      </section>
+    </main>
+    <details class="history" id="game-history">
+      <summary class="history-head">
+        <h2>Riwayat permainan</h2>
+        <p id="history-count"></p>
+      </summary>
+      <ol id="history-list" class="history-list" tabindex="0" aria-label="Catatan permainan"></ol>
+    </details>
+    <footer class="page-foot">NOTE: ini hanya permainan dan tidak ada hadiah sungguhan.</footer>
+  </div>
+
+  <dialog id="dialog" aria-labelledby="dialog-title">
+    <div id="dialog-content"></div>
+    <div class="scene-controls">
+      <button class="button prize-trigger modal-prize-trigger" id="modal-prizes" type="button" aria-haspopup="dialog">Papan Hadiah</button>
+      <button class="button screen-pause" id="modal-pause" type="button" aria-haspopup="dialog">Pause</button>
+    </div>
+  </dialog>
+
+  <dialog id="prize-dialog" aria-labelledby="prize-dialog-title">
+    <h2 id="prize-dialog-title">Papan Hadiah</h2>
+    <div id="prize-dialog-content"></div>
+    <button class="button primary" id="close-prizes" type="button">Tutup</button>
+  </dialog>
+
+  <dialog id="pause-dialog" aria-labelledby="pause-title">
+    <section id="pause-menu" aria-labelledby="pause-title">
+      <h2 id="pause-title">Permainan dijeda</h2>
+      <div class="menu-buttons">
+        <button class="button primary" id="resume" type="button">Lanjutkan</button>
+        <button class="button" id="restart" type="button">Restart</button>
+        <button class="button" id="pause-rules" type="button">Cara Main</button>
+        <button class="button" id="pause-settings" type="button">Pengaturan</button>
+        <button class="button" id="exit-game" type="button">Keluar Permainan</button>
+      </div>
+    </section>
+    <section id="pause-rules-panel" aria-labelledby="pause-rules-title" hidden>
+      <h2 id="pause-rules-title" tabindex="-1">Cara Main</h2>
+      <ol class="rules"></ol>
+      <button class="button primary" type="button" data-pause-back>Kembali</button>
+    </section>
+    <section id="pause-settings-panel" aria-labelledby="pause-settings-title" hidden>
+      <h2 id="pause-settings-title" tabindex="-1">Pengaturan</h2>
+      <div class="music-controls">
+        <label for="pause-music">
+          Nyalakan musik
+          <input type="checkbox" id="pause-music" role="switch" data-music-enabled checked>
+        </label>
+        <div class="music-volume">
+          <label for="pause-volume">Volume musik <output for="pause-volume">70%</output></label>
+          <input type="range" id="pause-volume" data-music-volume min="0" max="100" value="70">
+        </div>
+      </div>
+      <button class="button primary" type="button" data-pause-back>Kembali</button>
+    </section>
+    <section id="pause-confirmation" aria-labelledby="pause-confirmation-title" hidden>
+      <h2 id="pause-confirmation-title" tabindex="-1"></h2>
+      <p id="pause-confirmation-detail"></p>
+      <div class="dialog-actions">
+        <button class="button" type="button" data-pause-back>Kembali</button>
+        <button class="button primary" id="pause-confirm" type="button"></button>
+      </div>
+    </section>
+  </dialog>
+
+<script>
+"use strict";
+
+const prizes = [
+  500, 1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000,
+  2500000, 5000000, 7500000, 10000000, 15000000, 30000000, 50000000,
+  75000000, 100000000, 150000000, 200000000, 300000000, 400000000,
+  500000000, 1000000000, 2000000000
+];
+const rounds = [6, 5, 4, 3, 2, 1, 1, 1, 1];
+const offerFractions = [.17, .25, .35, .46, .58, .68, .78, .87, .96];
+const caseDuration = 3000;
+const arrivalDuration = 20000;
+const arrivalMotion = 640;
+const callDuration = 15000;
+const announcementDuration = 5000;
+const decisionDuration = 5000;
+const sweepInterval = 800;
+const numberFormat = new Intl.NumberFormat("id-ID");
+const rupiah = amount => "Rp" + numberFormat.format(amount);
+const byId = id => document.getElementById(id);
+const dialog = byId("dialog");
+const dialogContent = byId("dialog-content");
+let game;
+let sceneFrame = null;
+let sceneTick = null;
+let pausedAt = null;
+let pauseDuration = 0;
+let pausedAnimations = [];
+let gameFocus = null;
+const gameScreen = byId("game-screen");
+const menuScreen = byId("menu-screen");
+const pauseDialog = byId("pause-dialog");
+const prizeDialog = byId("prize-dialog");
+const mobileLayout = matchMedia("(pointer: coarse) and (max-width: 650px) and (orientation: portrait), (pointer: coarse) and (max-width: 1050px) and (max-height: 540px) and (orientation: landscape)");
+
+const music = new Audio();
+music.preload = "auto";
+const musicSettingsKey = "deal-or-no-deal-indonesia.music";
+const musicSwitches = document.querySelectorAll("[data-music-enabled]");
+const musicSliders = document.querySelectorAll("[data-music-volume]");
+let musicEnabled = true;
+let musicVolume = 70;
+let musicTrack = null;
+let musicBlocked = false;
+let musicWaitTimer = null;
+let musicContext = null;
+let musicGain = null;
+
+try {
+  const settings = JSON.parse(localStorage.getItem(musicSettingsKey) || "{}");
+  if (typeof settings?.enabled === "boolean") musicEnabled = settings.enabled;
+  if (Number.isFinite(settings?.volume)) musicVolume = Math.min(100, Math.max(0, settings.volume));
+} catch {
+  // The controls still work when browser storage is unavailable.
+}
+
+function syncMusicSettings() {
+  const volume = musicVolume / 100;
+  if (musicGain) musicGain.gain.value = volume;
+  else music.volume = volume;
+  for (const input of musicSwitches) input.checked = musicEnabled;
+  for (const slider of musicSliders) {
+    slider.value = musicVolume;
+    slider.previousElementSibling.querySelector("output").value = musicVolume + "%";
+  }
+}
+
+function saveMusicSettings() {
+  try {
+    localStorage.setItem(musicSettingsKey, JSON.stringify({ enabled: musicEnabled, volume: musicVolume }));
+  } catch {
+    // Keep the current page's settings.
+  }
+}
+
+function enableMusicGain() {
+  // Some mobile browsers leave the element's volume under hardware control.
+  if (musicContext || location.protocol === "file:" || music.volume !== 1) return;
+  const Context = window.AudioContext || window.webkitAudioContext;
+  if (!Context) return;
+  music.volume = .5;
+  const needsGain = music.volume === 1;
+  music.volume = musicVolume / 100;
+  if (!needsGain) return;
+  try {
+    musicContext = new Context();
+    musicGain = musicContext.createGain();
+    musicGain.gain.value = musicVolume / 100;
+    musicContext.createMediaElementSource(music).connect(musicGain);
+    musicGain.connect(musicContext.destination);
+  } catch {
+    musicGain = null;
+  }
+}
+
+function clearMusicWait() {
+  clearTimeout(musicWaitTimer);
+  musicWaitTimer = null;
+}
+
+function releaseSceneAfterMusic() {
+  const track = musicTrack;
+  if (!track?.next || pausedAt !== null) return;
+  clearMusicWait();
+  if (!musicEnabled || music.ended || music.error || track.failed || musicBlocked) {
+    const next = track.next;
+    track.next = null;
+    next();
+    return;
+  }
+  // An unavailable or stalled MP3 must not trap the player on the decision.
+  musicWaitTimer = setTimeout(() => {
+    track.failed = true;
+    releaseSceneAfterMusic();
+  }, 8000);
+}
+
+function syncMusicPlayback() {
+  const track = musicTrack;
+  if (!track || !musicEnabled || pausedAt !== null || track.failed || music.ended) {
+    music.pause();
+    clearMusicWait();
+    return;
+  }
+  if (musicContext && musicContext.state !== "running") musicContext.resume().catch(() => {});
+  if (!music.paused) return;
+  music.play().then(() => {
+    if (musicTrack === track) musicBlocked = false;
+  }).catch(error => {
+    if (musicTrack !== track || error.name === "AbortError") return;
+    if (error.name === "NotAllowedError") musicBlocked = true;
+    else track.failed = true;
+    releaseSceneAfterMusic();
+  });
+}
+
+function playTrack(name, loop = true) {
+  clearMusicWait();
+  music.pause();
+  musicBlocked = false;
+  musicTrack = name ? { name, failed: false, next: null } : null;
+  if (name) {
+    music.loop = loop;
+    music.src = "./music/" + name + ".mp3";
+  } else {
+    music.removeAttribute("src");
+    music.load();
+  }
+  syncMusicPlayback();
+}
+
+function afterDecisionMusic(next) {
+  musicTrack.next = next;
+  releaseSceneAfterMusic();
+}
+
+music.addEventListener("ended", releaseSceneAfterMusic);
+music.addEventListener("error", releaseSceneAfterMusic);
+music.addEventListener("timeupdate", () => {
+  if (!music.paused && musicTrack?.next) releaseSceneAfterMusic();
+});
+for (const input of musicSwitches) input.addEventListener("change", () => {
+  musicEnabled = input.checked;
+  syncMusicSettings();
+  saveMusicSettings();
+  syncMusicPlayback();
+  releaseSceneAfterMusic();
+});
+for (const slider of musicSliders) slider.addEventListener("input", () => {
+  musicVolume = Number(slider.value);
+  syncMusicSettings();
+  saveMusicSettings();
+});
+function unlockMusic(event) {
+  if (!event.isTrusted) return;
+  enableMusicGain();
+  musicBlocked = false;
+  syncMusicPlayback();
+}
+document.addEventListener("click", unlockMusic, true);
+document.addEventListener("keydown", unlockMusic, true);
+syncMusicSettings();
+
+function shuffled(values) {
+  const result = values.slice();
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+const caseButtons = prizes.map((_, index) => {
+  const button = document.createElement("button");
+  button.className = "case";
+  button.type = "button";
+  const number = document.createElement("span");
+  number.className = "number";
+  number.textContent = index + 1;
+  button.append(number);
+  button.addEventListener("click", () => chooseCase(index));
+  byId("cases").append(button);
+  return button;
+});
+
+const half = prizes.length / 2;
+const prizeTiles = new Map();
+for (let i = 0; i < half; i++) {
+  for (const index of [i, i + half]) {
+    const amount = prizes[index];
+    const tile = document.createElement("div");
+    tile.className = index >= half ? "prize high" : "prize";
+    const label = document.createElement("span");
+    label.textContent = rupiah(amount);
+    const status = document.createElement("span");
+    status.className = "sr-only";
+    tile.append(label, status);
+    byId("prizes").append(tile);
+    prizeTiles.set(amount, { tile, status });
+  }
+}
+
+function startGame(playerName) {
+  menuScreen.hidden = true;
+  gameScreen.hidden = false;
+  for (const id of ["player-name", "mobile-player-name"]) {
+    const label = byId(id);
+    label.textContent = label.title = "Pemain: " + playerName;
+  }
+  byId("game-history").open = false;
+  for (const button of caseButtons) {
+    button.classList.remove("arrival-enter");
+    button.classList.add("arrival-pending");
+  }
+  game = {
+    playerName,
+    values: shuffled(prizes),
+    opened: new Set(),
+    revealed: new Set(),
+    chosen: null,
+    last: null,
+    round: 0,
+    quota: rounds[0],
+    phase: "arrival",
+    offer: null,
+    previousOffers: [],
+    deal: null,
+    final: null,
+    startedAt: performance.now()
+  };
+  byId("history-list").replaceChildren();
+  record(playerName + " memulai permainan. Semua nominal telah diacak.");
+  render();
+  playTrack("ladiesintro", false);
+  let shown = 0;
+  const interval = (arrivalDuration - arrivalMotion) / (caseButtons.length - 1);
+  runAnimation(arrivalDuration, elapsed => {
+    while (shown < caseButtons.length && elapsed >= shown * interval) {
+      const button = caseButtons[shown++];
+      button.classList.remove("arrival-pending");
+      button.classList.add("arrival-enter");
+    }
+  }, () => {
+    for (const button of caseButtons) button.classList.remove("arrival-enter");
+    game.phase = "pick";
+    playTrack("thinking");
+    game.startedAt = performance.now();
+    render();
+    if (!prizeDialog.open) focusNextCase();
+  });
+}
+
+function record(message, important = false) {
+  const list = byId("history-list");
+  const follow = list.scrollHeight - list.scrollTop - list.clientHeight < 32;
+  const seconds = Math.floor((performance.now() - game.startedAt) / 1000);
+  const row = document.createElement("li");
+  const time = document.createElement("time");
+  const detail = document.createElement("span");
+  time.dateTime = "PT" + seconds + "S";
+  time.textContent = String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
+  detail.textContent = message;
+  if (important) detail.className = "key";
+  row.append(time, detail);
+  list.append(row);
+  byId("history-count").textContent = list.children.length + " kejadian";
+  if (follow) list.scrollTop = list.scrollHeight;
+}
+
+function roundLabel() {
+  return "Ronde " + (game.round + 1);
+}
+
+function recordRound() {
+  record(roundLabel() + " dimulai. " + game.playerName + " perlu membuka " + game.quota + " koper.");
+}
+
+function focusNextCase(after = -1) {
+  const next = caseButtons.slice(after + 1).find(button => !button.disabled)
+    || caseButtons.find(button => !button.disabled);
+  if (next) next.focus({ preventScroll: true });
+}
+
+function render() {
+  const { chosen, opened, revealed, last, quota, phase, deal, playerName } = game;
+  const picking = phase === "pick";
+  const opening = phase === "open";
+  const pendingReveal = phase === "reveal";
+  const headings = {
+    arrival: ["Koper memasuki panggung", "Bersiap memilih koper, " + playerName + "."],
+    pick: ["Pilih kopermu, " + playerName, "Simpan satu koper. Isinya masih rahasia."],
+    selected: ["Koper " + playerName + " sudah dipilih", "Koper ini disimpan hingga pengungkapan terakhir."],
+    open: ["Buka koper, " + playerName, "Nominal koper yang dibuka akan dicoret dari papan."],
+    opening: [playerName + " membuka koper", "Tunggu hitung mundur sebelum nominal terungkap."],
+    reveal: last === null ? null : [
+      "Koper #" + (last + 1) + " berisi " + rupiah(game.values[last]),
+      quota === 0 ? playerName + ", Banker siap memberi tawaran." : playerName + ", buka " + quota + " koper lagi."
+    ],
+    call: ["Banker menelepon", "Pembawa Acara membahas permainan " + playerName + "."],
+    announce: ["Pengumuman tawaran", "Pembawa Acara menyampaikan tawaran untuk " + playerName + "."],
+    offer: ["Tawaran Banker untuk " + playerName, "Terima tawaran atau lanjutkan permainan."],
+    decision: [playerName + " memilih No Deal", "Tawaran ditolak."],
+    deal: [playerName + " memilih Deal", "Hadiah sudah terkunci."],
+    sweep: ["Mengungkap koper lain", "Koper " + playerName + " dibuka paling akhir."],
+    final: ["Dua koper tersisa", playerName + ", simpan atau tukar kopermu."],
+    done: game.final && ["Isi koper " + rupiah(game.final.value),
+      deal ? "Hadiah Deal " + playerName + " " + rupiah(deal.amount) + "." : "Nominal koper menjadi hadiah " + playerName + "."]
+  };
+  const [title, hint] = headings[phase];
+  byId("prompt").textContent = title;
+  byId("instruction").textContent = hint;
+  byId("phase").textContent = phase === "arrival" ? "Pembukaan" : picking ? "Pilih koper"
+    : phase === "done" ? "Selesai"
+    : deal ? "Deal diterima"
+    : phase === "final" ? "Final" : roundLabel() + " / " + rounds.length;
+  byId("counter").hidden = !opening && !pendingReveal && phase !== "opening";
+  byId("quota").textContent = quota;
+  byId("opened").textContent = opened.size + " / 24";
+  byId("last").hidden = last === null;
+  byId("last").textContent = last === null ? "" : "Terakhir dibuka #" + (last + 1) + " · " + rupiah(game.values[last]);
+  byId("case-stage-action").hidden = !["reveal", "done"].includes(phase);
+
+  caseButtons.forEach((button, index) => {
+    const spent = opened.has(index);
+    const held = chosen === index;
+    const exposed = revealed.has(index);
+    button.classList.toggle("spent", exposed);
+    button.classList.toggle("held", held && !exposed);
+    button.classList.toggle("selecting", held && phase === "selected");
+    button.classList.toggle("final-case", held && phase === "done");
+    if (exposed) showCaseAmount(index);
+    else if (phase !== "opening" && phase !== "sweep") {
+      button.classList.remove("lid-open");
+      button.querySelector(".case-ticket, .case-count")?.remove();
+    }
+    button.disabled = !picking && !(opening && !spent && !held);
+    const valueLabel = revealed.has(index) ? ", " + rupiah(game.values[index]) : "";
+    button.setAttribute("aria-label", "Koper " + (index + 1) + (held ? ", koper " + playerName : "") + valueLabel);
+    button.title = revealed.has(index) ? rupiah(game.values[index]) : "";
+  });
+
+  const revealedValues = new Set(Array.from(revealed, index => game.values[index]));
+  for (const [amount, { tile, status }] of prizeTiles) {
+    const eliminated = revealedValues.has(amount);
+    tile.classList.toggle("out", eliminated);
+    tile.classList.toggle("last", last !== null && game.values[last] === amount);
+    tile.classList.toggle("final-prize", phase === "done" && game.final.value === amount);
+    status.textContent = eliminated ? " (terungkap)" : "";
+  }
+}
+
+function modal(label, title, body, actions, dismissible = false) {
+  dialog.classList.remove("cinematic", "decision", "rejected");
+  dialogContent.replaceChildren();
+  dialog.dataset.dismissible = String(dismissible);
+  dialogContent.className = "reveal";
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "eyebrow";
+  eyebrow.textContent = label;
+  const heading = document.createElement("h2");
+  heading.id = "dialog-title";
+  heading.textContent = title;
+  dialogContent.append(eyebrow, heading);
+  for (const item of body) {
+    const element = document.createElement(item.tag || "p");
+    if (item.className) element.className = item.className;
+    if (Array.isArray(item.text)) {
+      for (const text of item.text) {
+        const li = document.createElement("li");
+        li.textContent = text;
+        element.append(li);
+      }
+    } else {
+      element.textContent = item.text;
+    }
+    dialogContent.append(element);
+  }
+  if (actions.length) {
+    const buttons = document.createElement("div");
+    buttons.className = "dialog-actions";
+    for (const [caption, action, emphasis] of actions) {
+      const button = document.createElement("button");
+      button.className = emphasis ? "button primary" : "button";
+      button.textContent = caption;
+      button.addEventListener("click", action);
+      buttons.append(button);
+    }
+    dialogContent.append(buttons);
+  }
+  if (!dialog.open) {
+    if (prizeDialog.open) prizeDialog.close();
+    dialog.showModal();
+  }
+  dialog.scrollTop = 0;
+  heading.tabIndex = -1;
+  (dialogContent.querySelector("button") || heading).focus({ preventScroll: true });
+}
+
+function playScene({ label, title, kind, duration, cues, complete }) {
+  modal(label, title, [], []);
+  dialog.classList.add("cinematic");
+  const display = document.createElement("div");
+  display.className = "scene-display";
+  const emblem = document.createElement("div");
+  if (kind === "deal" || kind === "no-deal") {
+    dialog.classList.add("decision");
+    dialog.classList.toggle("rejected", kind === "no-deal");
+  } else {
+    emblem.className = "scene-emblem " + kind;
+    emblem.setAttribute("aria-hidden", "true");
+    emblem.textContent = kind === "phone" ? "☎" : kind === "mic" ? "🎙" : "";
+    display.append(emblem);
+    dialogContent.append(display);
+  }
+
+  const speakers = new Map();
+  if (kind === "phone") {
+    const group = document.createElement("div");
+    group.className = "scene-speakers";
+    group.setAttribute("aria-hidden", "true");
+    for (const name of ["Pembawa Acara", "Banker"]) {
+      const speaker = document.createElement("div");
+      speaker.className = "speaker";
+      const meter = document.createElement("span");
+      meter.className = "meter";
+      for (let i = 0; i < 3; i++) meter.append(document.createElement("i"));
+      speaker.append(meter, name);
+      group.append(speaker);
+      speakers.set(name, speaker);
+    }
+    dialogContent.append(group);
+  }
+  const line = document.createElement("div");
+  line.className = "scene-line";
+  line.setAttribute("aria-live", "polite");
+  line.setAttribute("aria-atomic", "true");
+  const progress = document.createElement("div");
+  progress.className = "scene-progress";
+  progress.setAttribute("aria-hidden", "true");
+  const track = document.createElement("div");
+  track.className = "scene-track";
+  const bar = document.createElement("span");
+  track.append(bar);
+  const clock = document.createElement("span");
+  progress.append(track, clock);
+  dialogContent.append(line, progress);
+
+  let shownCue = -1;
+  let shownSecond = null;
+  runAnimation(duration, (elapsed, fraction) => {
+    let cueIndex = shownCue;
+    while (cueIndex + 1 < cues.length && elapsed >= cues[cueIndex + 1].at) cueIndex++;
+    const remaining = Math.ceil((duration - elapsed) / 1000);
+    if (remaining !== shownSecond) {
+      shownSecond = remaining;
+      clock.textContent = remaining + " dtk";
+    }
+    bar.style.transform = "scaleX(" + (1 - fraction) + ")";
+    if (cueIndex !== shownCue) {
+      shownCue = cueIndex;
+      const cue = cues[cueIndex];
+      for (const [name, speaker] of speakers) speaker.classList.toggle("active", name === cue.speaker);
+      const subtitle = document.createElement("p");
+      subtitle.className = "reveal";
+      if (cue.speaker) {
+        const name = document.createElement("strong");
+        name.textContent = cue.speaker;
+        subtitle.append(name, " — ");
+      }
+      subtitle.append(cue.text);
+      line.replaceChildren(subtitle);
+      if (cue.amount !== undefined) {
+        const amount = document.createElement("div");
+        amount.className = "amount reveal";
+        amount.textContent = rupiah(cue.amount);
+        line.append(amount);
+      }
+    }
+  }, complete);
+}
+
+function runAnimation(duration, update, complete) {
+  const start = performance.now() - pauseDuration;
+  function tick(now) {
+    const elapsed = Math.min(duration, Math.max(0, now - pauseDuration - start));
+    update(elapsed, elapsed / duration);
+    if (elapsed < duration) sceneFrame = requestAnimationFrame(tick);
+    else {
+      sceneFrame = null;
+      sceneTick = null;
+      complete();
+    }
+  }
+  sceneTick = tick;
+  tick(start + pauseDuration);
+}
+
+function caseStageAction(text, action) {
+  const button = byId("case-stage-action");
+  button.textContent = text;
+  button.onclick = action;
+  button.hidden = false;
+  button.focus({ preventScroll: true });
+}
+
+function showCaseAmount(index) {
+  const button = caseButtons[index];
+  if (button.querySelector(".case-ticket")) return;
+  const ticket = document.createElement("span");
+  ticket.className = "case-ticket";
+  ticket.textContent = rupiah(game.values[index]);
+  button.append(ticket);
+}
+
+function countdownCase(index, complete) {
+  if (dialog.open) dialog.close();
+  game.phase = "opening";
+  render();
+  const button = caseButtons[index];
+  const count = document.createElement("span");
+  count.className = "case-count";
+  count.setAttribute("aria-hidden", "true");
+  button.append(count);
+  runAnimation(caseDuration, elapsed => {
+    if (elapsed >= caseDuration - 320) {
+      count.hidden = true;
+      button.classList.add("lid-open");
+      return;
+    }
+    const second = String(Math.ceil((caseDuration - elapsed) / 1000));
+    if (count.textContent !== second) {
+      count.textContent = second;
+      count.classList.remove("beat");
+      void count.offsetWidth;
+      count.classList.add("beat");
+    }
+  }, () => {
+    count.remove();
+    button.classList.remove("lid-open");
+    complete();
+  });
+}
+
+function playerNameForCase(index) {
+  return "Koper #" + (index + 1) + " pilihan " + game.playerName;
+}
+
+function chooseCase(index) {
+  if (game.phase === "pick") {
+    game.chosen = index;
+    game.phase = "selected";
+    record(playerNameForCase(index) + " dipilih untuk disimpan.", true);
+    render();
+    runAnimation(caseDuration, () => {}, () => {
+      game.phase = "open";
+      recordRound();
+      render();
+      focusNextCase();
+    });
+    return;
+  }
+  if (game.phase !== "open" || game.chosen === index || game.opened.has(index)) return;
+  countdownCase(index, () => revealCase(index));
+}
+
+function revealCase(index) {
+  game.opened.add(index);
+  game.revealed.add(index);
+  game.last = index;
+  game.quota--;
+  game.phase = "reveal";
+  record(roundLabel() + " · " + game.playerName + " membuka koper #" + (index + 1) + " berisi " + rupiah(game.values[index]) + ".");
+  render();
+
+  const atOffer = game.quota === 0;
+  caseStageAction(atOffer ? "Lihat tawaran" : "Lanjut", () => {
+    if (atOffer) {
+      startBankerCall();
+      return;
+    }
+    game.phase = "open";
+    render();
+    focusNextCase(index);
+  });
+}
+
+function remainingCases() {
+  return game.values.map((_, index) => index).filter(index => !game.opened.has(index));
+}
+
+function calculateOffer() {
+  const remaining = remainingCases().map(index => game.values[index]);
+  const average = remaining.reduce((sum, value) => sum + value, 0) / remaining.length;
+  const estimate = average * offerFractions[game.round] * (.94 + Math.random() * .12);
+  const step = estimate >= 1000000 ? 10000 : estimate >= 10000 ? 1000 : 100;
+  const rounded = Math.round(estimate / step) * step;
+  return Math.min(Math.max(rounded, Math.min(...remaining)), Math.max(...remaining));
+}
+
+function startBankerCall() {
+  playTrack("bankerring");
+  game.phase = "call";
+  game.offer = calculateOffer();
+  const remaining = remainingCases();
+  const highest = Math.max(...remaining.map(index => game.values[index]));
+  const host = "Pembawa Acara";
+  const { playerName } = game;
+  const round = game.round + 1;
+  const hostQuestion = [
+    "Halo, Banker. Sudah melihat hasil ronde pertama " + playerName + "?",
+    "Halo lagi, Banker. Apa penilaian Anda untuk " + playerName + " kali ini?",
+    "Banker, bagaimana peluang " + playerName + " sekarang?",
+    playerName + " sudah melewati ronde keempat. Apa kata Banker?",
+    "Nominal di papan makin sedikit. Apa rencana Banker untuk " + playerName + "?",
+    playerName + " baru saja membuka koper lagi. Apakah itu mengubah tawarannya?",
+    "Banker, apakah Anda siap memberi tawaran baru untuk " + playerName + "?",
+    playerName + " hampir sampai final. Berapa tawarannya, Banker?",
+    "Ini panggilan terakhir. Apa tawaran terakhir untuk " + playerName + "?"
+  ][game.round];
+  record(roundLabel() + " · Banker menelepon untuk membahas tawaran bagi " + playerName + ".");
+  render();
+  playScene({
+    label: roundLabel(),
+    title: "Panggilan dari Banker",
+    kind: "phone",
+    duration: callDuration,
+    cues: [
+      { at: 0, text: "Telepon berdering. " + playerName + " menunggu tawaran Banker." },
+      { at: 2000, speaker: host, text: hostQuestion },
+      { at: 5100, speaker: "Banker", text: playerName + " masih punya " + remaining.length + " koper di permainan. " + rupiah(highest) + " juga masih di papan." },
+      { at: 8700, speaker: host, text: round === rounds.length ? "Jadi, ini tawaran terakhir untuk " + playerName + "?" : "Berapa tawaran Anda agar " + playerName + " berhenti sekarang?" },
+      { at: 11800, speaker: "Banker", text: "Tawaran saya sudah siap. Silakan sampaikan kepada " + playerName + "." }
+    ],
+    complete: announceOffer
+  });
+}
+
+function announceOffer() {
+  game.phase = "announce";
+  record(roundLabel() + " · Tawaran Banker " + rupiah(game.offer) + ".", true);
+  render();
+  playScene({
+    label: roundLabel(),
+    title: "Pengumuman tawaran",
+    kind: "mic",
+    duration: announcementDuration,
+    cues: [
+      { at: 0, speaker: "Pembawa Acara", text: game.playerName + ", saya sudah menerima angka dari Banker." },
+      { at: 1400, speaker: "Pembawa Acara", text: "Untuk berhenti di ronde ini, Banker menawarkan kepada " + game.playerName + "…", amount: game.offer },
+      { at: 3900, speaker: "Pembawa Acara", text: game.playerName + ", apa keputusanmu? Deal atau No Deal?", amount: game.offer }
+    ],
+    complete: showOffer
+  });
+}
+
+function showOffer() {
+  game.phase = "offer";
+  render();
+  modal("Banker · Ronde " + (game.round + 1), "Tawaran Banker", [
+    { tag: "div", className: "amount", text: rupiah(game.offer) },
+    { text: game.playerName + ", ada " + remainingCases().length + " koper tersisa. Ambil tawaran atau lanjutkan?" }
+  ], [["No Deal", () => decide(false)], ["Deal", () => decide(true), true]]);
+  const history = document.createElement("section");
+  history.className = "offer-history";
+  history.setAttribute("aria-labelledby", "offer-history-title");
+  const heading = document.createElement("h3");
+  heading.id = "offer-history-title";
+  heading.textContent = "Riwayat tawaran Banker";
+  history.append(heading);
+  if (game.previousOffers.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "Ini tawaran pertama.";
+    history.append(empty);
+  } else {
+    const list = document.createElement("ul");
+    game.previousOffers.forEach((amount, index) => {
+      const row = document.createElement("li");
+      const round = document.createElement("span");
+      const value = document.createElement("strong");
+      round.textContent = "Ronde " + (index + 1);
+      value.textContent = rupiah(amount);
+      row.append(round, value);
+      list.append(row);
+    });
+    history.append(list);
+  }
+  dialogContent.append(history);
+}
+
+function advanceRound() {
+  playTrack("thinking");
+  if (game.round + 1 === rounds.length) {
+    showFinalChoice();
+    return;
+  }
+  game.round++;
+  game.quota = rounds[game.round];
+  game.phase = "open";
+  recordRound();
+  render();
+  dialog.close();
+  focusNextCase();
+}
+
+function decide(accepted) {
+  const amount = game.offer;
+  if (accepted) game.deal = { amount };
+  else game.previousOffers.push(amount);
+  game.phase = accepted ? "deal" : "decision";
+  playTrack(accepted ? "deal" : "nodeal", false);
+  const title = accepted ? "Deal!" : "No Deal!";
+  const outcome = accepted ? "Hadiah " + game.playerName + " sebesar " + rupiah(amount) + " terkunci." : game.playerName + " menolak tawaran " + rupiah(amount) + ".";
+  record(roundLabel() + " · " + title + " " + outcome, true);
+  render();
+  playScene({
+    label: roundLabel(), title, kind: accepted ? "deal" : "no-deal", duration: accepted ? 13218 : decisionDuration,
+    cues: [
+      { at: 0, text: outcome },
+      { at: 2600, text: accepted ? "Saatnya melihat isi semua koper yang tersisa."
+        : game.round + 1 === rounds.length ? "Dua koper tersisa. Bersiap untuk pilihan final."
+        : "Bersiap membuka koper di ronde berikutnya." }
+    ],
+    complete: () => afterDecisionMusic(accepted ? revealRemaining : advanceRound)
+  });
+}
+
+function revealRemaining() {
+  playTrack("ladiesintro", false);
+  const others = remainingCases().filter(index => index !== game.chosen);
+  game.phase = "sweep";
+  record("Deal · Koper " + game.playerName + " dibuka setelah " + others.length + " koper lain.");
+  render();
+  if (dialog.open) dialog.close();
+  let shown = -1;
+  runAnimation(others.length * sweepInterval, elapsed => {
+    const current = Math.min(others.length - 1, Math.floor(elapsed / sweepInterval));
+    if (current !== shown) {
+      if (shown >= 0) caseButtons[others[shown]].classList.remove("lid-open");
+      while (shown < current) revealFinalValue(others[++shown]);
+      render();
+    }
+    caseButtons[others[current]].classList.toggle("lid-open", elapsed - current * sweepInterval < 460);
+  }, revealDeal);
+}
+
+function revealDeal() {
+  const index = game.chosen;
+  countdownCase(index, () => {
+    revealFinalValue(index);
+    game.final = { value: game.values[index] };
+    finishGame();
+  });
+}
+
+function showFinalChoice() {
+  game.phase = "final";
+  const other = remainingCases().find(index => index !== game.chosen);
+  record("Final · " + playerNameForCase(game.chosen) + " dan koper #" + (other + 1) + " tersisa.");
+  render();
+  modal("Final", "Dua koper tersisa", [
+    { text: playerNameForCase(game.chosen) + " dan koper terakhir #" + (other + 1) + "." },
+    { text: game.playerName + ", simpan atau tukar kopermu sebelum keduanya dibuka." }
+  ], [
+    ["Simpan #" + (game.chosen + 1), () => revealFinal(false, other), true],
+    ["Tukar ke #" + (other + 1), () => revealFinal(true, other)]
+  ]);
+}
+
+function revealFinal(swap, other) {
+  const original = game.chosen;
+  const rejected = swap ? original : other;
+  if (swap) game.chosen = other;
+  const chosen = game.chosen;
+  const label = "Final";
+  record(label + " · " + game.playerName + (swap ? " menukar ke koper #" : " menyimpan koper #") + (chosen + 1) + ".", true);
+  countdownCase(rejected, () => {
+    revealFinalValue(rejected);
+    render();
+    countdownCase(chosen, () => {
+      revealFinalValue(chosen);
+      game.final = { value: game.values[chosen] };
+      finishGame();
+    });
+  });
+}
+
+function revealFinalValue(index) {
+  game.revealed.add(index);
+  game.last = index;
+  const message = game.playerName + " melihat isi koper #" + (index + 1) + ", yaitu " + rupiah(game.values[index]) + ".";
+  record(message, true);
+  return message;
+}
+
+function finishGame() {
+  if (game.deal) playTrack("deal", false);
+  else playTrack(null);
+  game.phase = "done";
+  const amount = game.deal ? game.deal.amount : game.final.value;
+  record("Permainan selesai. " + game.playerName + " menerima " + rupiah(amount) + ".", true);
+  saveWinner(game.playerName, amount);
+  render();
+  caseStageAction("Main lagi", () => prepareGame(game.playerName));
+}
+
+const rules = [
+  "Pilih satu koper untuk disimpan. Nominal di dalamnya masih rahasia.",
+  "Buka koper lain dalam sembilan ronde dengan urutan 6, 5, 4, 3, 2, 1, 1, 1, dan 1 koper.",
+  "Setiap koper dibuka setelah hitung mundur tiga detik.",
+  "Di akhir tiap ronde, saksikan telepon Banker dan pengumuman Pembawa Acara. Setelah itu pilih Deal atau No Deal.",
+  "Jika tersisa dua koper setelah No Deal terakhir, simpan koper Anda atau tukar. Isi koper pilihan menjadi hadiah Anda.",
+  "Setelah Deal, hadiah terkunci. Koper lain diungkap satu per satu, lalu koper Anda dibuka paling akhir."
+];
+for (const list of document.querySelectorAll("#rules-panel .rules, #pause-rules-panel .rules")) {
+  for (const rule of rules) {
+    const item = document.createElement("li");
+    item.textContent = rule;
+    list.append(item);
+  }
+}
+
+const winnerKey = "deal-or-no-deal-indonesia.winners";
+let sessionWinners = [];
+let sessionOnly = false;
+
+function readWinners() {
+  try {
+    const entries = JSON.parse(localStorage.getItem(winnerKey) || "[]");
+    return Array.isArray(entries) ? entries.filter(entry =>
+      entry && typeof entry.name === "string" && Number.isFinite(entry.amount)) : [];
+  } catch {
+    sessionOnly = true;
+    return [];
+  }
+}
+
+function saveWinner(name, amount) {
+  const entry = { name, amount };
+  const winners = readWinners();
+  try {
+    if (!sessionOnly) {
+      localStorage.setItem(winnerKey, JSON.stringify([entry, ...winners]));
+      return;
+    }
+  } catch {
+    sessionOnly = true;
+  }
+  sessionWinners.unshift(entry);
+}
+
+function showMenu(panelId, focusId) {
+  if (panelId === "main-menu" && musicTrack?.name !== "mainmenu") playTrack("mainmenu");
+  if (panelId === "closed-panel") playTrack(null);
+  for (const panel of menuScreen.children) panel.hidden = panel.id !== panelId;
+  if (focusId) byId(focusId).focus();
+}
+
+function showWinners() {
+  const winners = [...sessionWinners, ...readWinners()];
+  const list = byId("winner-list");
+  list.replaceChildren();
+  for (const entry of winners) {
+    const row = document.createElement("li");
+    const name = document.createElement("span");
+    const prize = document.createElement("strong");
+    name.textContent = entry.name;
+    prize.textContent = rupiah(entry.amount);
+    row.append(name, prize);
+    list.append(row);
+  }
+  byId("winners-empty").hidden = winners.length !== 0;
+  byId("winners-storage").hidden = !sessionOnly;
+  showMenu("winners-panel", "winners-title");
+}
+
+function showPausePanel(panelId, titleId, focusId) {
+  for (const panel of pauseDialog.children) panel.hidden = panel.id !== panelId;
+  pauseDialog.setAttribute("aria-labelledby", titleId);
+  byId(focusId).focus({ preventScroll: true });
+}
+
+function showPauseMenu(focusId = "resume") {
+  showPausePanel("pause-menu", "pause-title", focusId);
+}
+
+function pauseGame(event) {
+  if (pauseDialog.open) return;
+  const focused = document.activeElement;
+  gameFocus = focused === event.currentTarget ? null : focused;
+  pausedAt = performance.now();
+  syncMusicPlayback();
+  cancelAnimationFrame(sceneFrame);
+  sceneFrame = null;
+  pausedAnimations = document.getAnimations().filter(animation => animation.playState === "running");
+  for (const animation of pausedAnimations) animation.pause();
+  showPauseMenu();
+  pauseDialog.showModal();
+  byId("resume").focus({ preventScroll: true });
+}
+
+function resumeGame() {
+  const pauseLength = performance.now() - pausedAt;
+  pauseDuration += pauseLength;
+  game.startedAt += pauseLength;
+  pausedAt = null;
+  pauseDialog.close();
+  for (const animation of pausedAnimations) {
+    if (animation.playState === "paused") animation.play();
+  }
+  pausedAnimations = [];
+  if (sceneTick) sceneFrame = requestAnimationFrame(sceneTick);
+  if (gameFocus) gameFocus.focus({ preventScroll: true });
+  else if (dialog.open) {
+    (dialogContent.querySelector("button") || dialogContent.querySelector("h2")).focus({ preventScroll: true });
+  } else {
+    const action = byId("case-stage-action");
+    const target = action.hidden ? caseButtons.find(button => !button.disabled) || byId("pause") : action;
+    target.focus({ preventScroll: true });
+  }
+  gameFocus = null;
+  syncMusicPlayback();
+  releaseSceneAfterMusic();
+}
+
+function leaveGame() {
+  cancelAnimationFrame(sceneFrame);
+  sceneFrame = sceneTick = null;
+  pausedAt = null;
+  pauseDuration = 0;
+  gameFocus = null;
+  if (pauseDialog.open) pauseDialog.close();
+  if (prizeDialog.open) prizeDialog.close();
+  if (dialog.open) dialog.close();
+  gameScreen.hidden = true;
+  for (const animation of pausedAnimations) animation.cancel();
+  pausedAnimations = [];
+  game = null;
+  if (musicTrack?.name !== "mainmenu") playTrack(null);
+  menuScreen.hidden = false;
+}
+
+function prepareGame(playerName) {
+  leaveGame();
+  byId("loading-player").textContent = "Pemain: " + playerName;
+  showMenu("loading-menu");
+  const duration = 3000;
+  const seconds = byId("loading-seconds");
+  runAnimation(duration, elapsed => {
+    const remaining = String(Math.ceil((duration - elapsed) / 1000));
+    if (seconds.textContent !== remaining) seconds.textContent = remaining;
+  }, () => startGame(playerName));
+}
+
+function confirmPauseAction(restart) {
+  const button = byId("pause-confirm");
+  byId("pause-confirmation-title").textContent = restart ? "Mulai ulang permainan?" : "Keluar dari permainan?";
+  byId("pause-confirmation-detail").textContent = game.phase === "done"
+    ? restart ? "Permainan baru akan dimulai dengan nama yang sama." : "Anda akan kembali ke menu utama."
+    : restart ? "Progres saat ini akan dihapus dan semua nominal diacak kembali."
+      : "Progres saat ini akan dihapus dan Anda akan kembali ke menu utama.";
+  button.textContent = restart ? "Mulai ulang" : "Keluar Permainan";
+  button.onclick = restart ? () => prepareGame(game.playerName) : () => {
+    leaveGame();
+    showMenu("main-menu", "start-menu");
+  };
+  showPausePanel("pause-confirmation", "pause-confirmation-title", "pause-confirmation-title");
+}
+
+byId("start-menu").addEventListener("click", () => {
+  const input = byId("player-input");
+  input.value = "";
+  input.setCustomValidity("");
+  showMenu("name-menu", "player-input");
+});
+byId("name-form").addEventListener("submit", event => {
+  event.preventDefault();
+  const input = byId("player-input");
+  const name = input.value.trim();
+  if (!name) {
+    input.setCustomValidity("Masukkan nama pemain.");
+    input.reportValidity();
+    return;
+  }
+  prepareGame(name);
+});
+byId("player-input").addEventListener("input", event => event.currentTarget.setCustomValidity(""));
+byId("winners-menu").addEventListener("click", showWinners);
+byId("rules-menu").addEventListener("click", () => showMenu("rules-panel", "rules-title"));
+byId("settings-menu").addEventListener("click", () => showMenu("settings-panel", "settings-title"));
+byId("exit-menu").addEventListener("click", () => showMenu("exit-panel", "exit-title"));
+byId("confirm-exit").addEventListener("click", () => {
+  showMenu("closed-panel", "closed-title");
+  window.close();
+});
+for (const button of document.querySelectorAll("[data-main-menu]")) {
+  button.addEventListener("click", () => showMenu("main-menu", "start-menu"));
+}
+
+for (const id of ["pause", "modal-pause"]) byId(id).addEventListener("click", pauseGame);
+byId("resume").addEventListener("click", resumeGame);
+byId("restart").addEventListener("click", () => confirmPauseAction(true));
+byId("exit-game").addEventListener("click", () => confirmPauseAction(false));
+byId("pause-settings").addEventListener("click", () => {
+  showPausePanel("pause-settings-panel", "pause-settings-title", "pause-settings-title");
+});
+byId("pause-rules").addEventListener("click", () => {
+  showPausePanel("pause-rules-panel", "pause-rules-title", "pause-rules-title");
+});
+for (const button of pauseDialog.querySelectorAll("[data-pause-back]")) {
+  button.addEventListener("click", () => showPauseMenu());
+}
+pauseDialog.addEventListener("cancel", event => {
+  event.preventDefault();
+  if (byId("pause-menu").hidden) showPauseMenu();
+  else resumeGame();
+});
+
+function placePrizeBoard() {
+  const board = byId("prize-board");
+  if (mobileLayout.matches) {
+    byId("prize-dialog-content").append(board);
+  } else {
+    if (prizeDialog.open) prizeDialog.close();
+    gameScreen.querySelector(".layout").append(board);
+  }
+  byId("board-title").hidden = mobileLayout.matches;
+  byId("player-name").hidden = mobileLayout.matches;
+  byId("mobile-player-name").hidden = !mobileLayout.matches;
+}
+
+mobileLayout.addEventListener("change", placePrizeBoard);
+placePrizeBoard();
+for (const id of ["show-prizes", "modal-prizes"]) byId(id).addEventListener("click", () => {
+  prizeDialog.showModal();
+  byId("close-prizes").focus({ preventScroll: true });
+  prizeDialog.scrollTop = 0;
+});
+byId("close-prizes").addEventListener("click", () => prizeDialog.close());
+
+dialog.addEventListener("cancel", event => {
+  if (dialog.dataset.dismissible !== "true") event.preventDefault();
+});
+
+playTrack("mainmenu");
+byId("play-menu-music").addEventListener("click", () => {
+  musicEnabled = true;
+  syncMusicSettings();
+  saveMusicSettings();
+  syncMusicPlayback();
+});
+if (location.protocol !== "file:" && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(error => {
+    console.warn("Service worker gagal didaftarkan.", error);
+  });
+}
+</script>
+</body>
+</html>
