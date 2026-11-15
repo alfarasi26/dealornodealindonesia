@@ -209,6 +209,7 @@
   .status > div:first-child { min-width: 0; }
   .status h2 { overflow-wrap: anywhere; }
   .stage-foot .button { margin-left: auto; }
+  .stage-foot .button + .button { margin-left: 0; }
   .stage-foot { align-items: center; }
   @keyframes ticket-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
   .cinematic.decision h2 {
@@ -315,9 +316,53 @@
     border: 1px solid #896b4d; background: radial-gradient(ellipse at top, #3e2c23, #1a202e 72%);
     box-shadow: 0 16px 60px #070910a6; text-align: center;
   }
-  .menu-card h1, .menu-card h2 {
+  .menu-card h1, .menu-card h2, .opening-logo {
     margin: 0 0 10px; color: #ffe5b1;
     font: 700 clamp(1.65rem, 6vw, 2.55rem)/1.12 var(--serif);
+  }
+  .opening-logo {
+    position: fixed; z-index: 3; margin: 0; text-align: center; pointer-events: none;
+  }
+  .menu-opening #menu-title { visibility: hidden; }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (transition-behavior: allow-discrete) {
+      .menu-screen {
+        transition: opacity .16s ease-out, display .16s allow-discrete;
+      }
+      .menu-screen[hidden] {
+        position: absolute; inset: 0; z-index: 2; opacity: 0; pointer-events: none;
+      }
+      .menu-screen > .menu-card, #pause-dialog > section {
+        grid-area: 1 / 1;
+        transition: opacity .2s ease-out .055s, translate .2s ease-out .055s,
+          display .2s allow-discrete .055s;
+      }
+      .menu-screen > .menu-card[hidden], #pause-dialog > section[hidden] {
+        opacity: 0; translate: 0 -7px; pointer-events: none;
+        transition-duration: .12s; transition-delay: 0s;
+      }
+      #pause-dialog {
+        opacity: 0; translate: 0 8px;
+        transition: opacity .18s ease-out, translate .18s ease-out,
+          overlay .18s allow-discrete, display .18s allow-discrete;
+      }
+      #pause-dialog[open] { display: grid; opacity: 1; translate: none; }
+      #pause-dialog:not([open]) { pointer-events: none; }
+      #pause-dialog::backdrop {
+        opacity: 0;
+        transition: opacity .18s ease-out, overlay .18s allow-discrete, display .18s allow-discrete;
+      }
+      #pause-dialog[open]::backdrop { opacity: 1; }
+      #pause-dialog:not([open])::backdrop { pointer-events: none; }
+      @starting-style {
+        .menu-screen:not([hidden]), .menu-screen > .menu-card:not([hidden]),
+        #pause-dialog[open], #pause-dialog[open] > section:not([hidden]),
+        #pause-dialog[open]::backdrop { opacity: 0; }
+        .menu-screen > .menu-card:not([hidden]), #pause-dialog[open],
+        #pause-dialog[open] > section:not([hidden]) { translate: 0 8px; }
+        #main-menu:not([hidden]) { translate: none; }
+      }
+    }
   }
   .menu-card p { color: var(--muted); }
   .menu-card .eyebrow { margin: 0 0 22px; color: var(--gold); }
@@ -442,7 +487,7 @@
   <main class="menu-screen" id="menu-screen">
     <section class="menu-card" id="main-menu" aria-labelledby="menu-title">
       <h1 id="menu-title">Deal <i>or</i> No Deal</h1>
-      <p class="eyebrow">Versi Indonesia</p>
+      <p class="eyebrow">Indonesia</p>
       <nav class="menu-buttons" aria-label="Menu utama">
         <button class="button primary" id="start-menu" type="button">Mulai Main</button>
         <button class="button" id="winners-menu" type="button">Daftar Pemenang</button>
@@ -472,6 +517,7 @@
       <p id="winners-empty" hidden>Belum ada permainan yang selesai.</p>
       <p id="winners-storage" hidden>Hasil hanya tersedia selama halaman ini terbuka.</p>
       <ol class="winner-list" id="winner-list"></ol>
+      <button class="button" id="reset-winners" type="button" disabled>Reset Daftar</button>
       <button class="button primary" type="button" data-main-menu>Kembali</button>
     </section>
     <section class="menu-card" id="rules-panel" aria-labelledby="rules-title" hidden>
@@ -510,7 +556,7 @@
     <header class="top">
       <div class="masthead">
         <h1>Deal <i>or</i> No Deal</h1>
-        <p class="eyebrow">Versi Indonesia</p>
+        <p class="eyebrow">Indonesia</p>
       </div>
       <div class="actions">
         <span class="player-name" id="player-name"></span>
@@ -540,6 +586,7 @@
           <span>Koper dibuka saat ronde <strong id="opened"></strong></span>
           <span id="last" hidden></span>
           <button id="case-stage-action" class="button primary" hidden></button>
+          <button id="finished-exit" class="button" type="button" hidden>Keluar Game</button>
         </div>
       </section>
 
@@ -650,6 +697,7 @@ const prizeDialog = byId("prize-dialog");
 const mobileLayout = matchMedia("(pointer: coarse) and (max-width: 650px) and (orientation: portrait), (pointer: coarse) and (max-width: 1050px) and (max-height: 540px) and (orientation: landscape)");
 
 const music = new Audio();
+if (location.protocol !== "file:") music.crossOrigin = "anonymous";
 music.preload = "auto";
 const musicSettingsKey = "deal-or-no-deal-indonesia.music";
 const musicSwitches = document.querySelectorAll("[data-music-enabled]");
@@ -838,6 +886,7 @@ for (let i = 0; i < half; i++) {
 
 function startGame(playerName) {
   menuScreen.hidden = true;
+  menuScreen.inert = true;
   gameScreen.hidden = false;
   for (const id of ["player-name", "mobile-player-name"]) {
     const label = byId(id);
@@ -955,6 +1004,7 @@ function render() {
   byId("last").hidden = last === null;
   byId("last").textContent = last === null ? "" : "Terakhir dibuka #" + (last + 1) + " · " + rupiah(game.values[last]);
   byId("case-stage-action").hidden = !["reveal", "done"].includes(phase);
+  byId("finished-exit").hidden = phase !== "done";
 
   caseButtons.forEach((button, index) => {
     const spent = opened.has(index);
@@ -1411,9 +1461,11 @@ function revealFinal(swap, other) {
   record(label + " · " + game.playerName + (swap ? " menukar ke koper #" : " menyimpan koper #") + (chosen + 1) + ".", true);
   countdownCase(rejected, () => {
     revealFinalValue(rejected);
+    if (swap) playTrack("deal", false);
     render();
     countdownCase(chosen, () => {
       revealFinalValue(chosen);
+      if (!swap) playTrack("deal", false);
       game.final = { value: game.values[chosen] };
       finishGame();
     });
@@ -1430,7 +1482,6 @@ function revealFinalValue(index) {
 
 function finishGame() {
   if (game.deal) playTrack("deal", false);
-  else playTrack(null);
   game.phase = "done";
   const amount = game.deal ? game.deal.amount : game.final.value;
   record("Permainan selesai. " + game.playerName + " menerima " + rupiah(amount) + ".", true);
@@ -1464,8 +1515,8 @@ function readWinners() {
     const entries = JSON.parse(localStorage.getItem(winnerKey) || "[]");
     return Array.isArray(entries) ? entries.filter(entry =>
       entry && typeof entry.name === "string" && Number.isFinite(entry.amount)) : [];
-  } catch {
-    sessionOnly = true;
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) sessionOnly = true;
     return [];
   }
 }
@@ -1484,10 +1535,79 @@ function saveWinner(name, amount) {
   sessionWinners.unshift(entry);
 }
 
+function animateOpeningLogo() {
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const menu = byId("main-menu");
+  const title = byId("menu-title");
+  if (reducedMotion.matches || typeof title.animate !== "function") return;
+
+  const bounds = title.getBoundingClientRect();
+  const text = document.createRange();
+  text.selectNodeContents(title);
+  const viewportWidth = document.documentElement.clientWidth;
+  const viewportHeight = document.documentElement.clientHeight;
+  const scale = Math.min(3.4, (viewportWidth - 32) / text.getBoundingClientRect().width,
+    viewportHeight * .32 / bounds.height);
+  if (!Number.isFinite(scale) || scale <= 1) return;
+
+  const logo = title.cloneNode(true);
+  logo.removeAttribute("id");
+  logo.className = "opening-logo";
+  logo.setAttribute("aria-hidden", "true");
+  Object.assign(logo.style, {
+    top: bounds.top + "px", left: bounds.left + "px", width: bounds.width + "px"
+  });
+  const x = (viewportWidth - bounds.width) / 2 - bounds.left;
+  const y = (viewportHeight - bounds.height) / 2 - bounds.top;
+  const center = "translate(" + x + "px, " + y + "px) scale(";
+  const held = center + scale + ")";
+  const duration = 1160;
+
+  menu.classList.add("menu-opening");
+  menu.inert = true;
+  document.body.append(logo);
+  const logoMotion = logo.animate([
+    { opacity: 0, transform: center + (scale * .92) + ")", easing: "ease-out" },
+    { opacity: 1, transform: held, offset: .26 },
+    { opacity: 1, transform: held, offset: .43, easing: "cubic-bezier(.2, .72, .24, 1)" },
+    { opacity: 1, transform: "none" }
+  ], { duration, fill: "both" });
+  const menuMotion = menu.animate([
+    { opacity: 0 }, { opacity: 0, offset: .55, easing: "ease-out" }, { opacity: 1 }
+  ], { duration, fill: "both" });
+
+  function finishIntro() {
+    if (!logo.isConnected) return;
+    window.removeEventListener("resize", handleIntroResize);
+    reducedMotion.removeEventListener("change", finishIntro);
+    logo.remove();
+    logoMotion.cancel();
+    menuMotion.cancel();
+    menu.classList.remove("menu-opening");
+    menu.inert = false;
+  }
+
+  function handleIntroResize() {
+    if (document.documentElement.clientWidth !== viewportWidth ||
+        document.documentElement.clientHeight !== viewportHeight) finishIntro();
+  }
+
+  window.addEventListener("resize", handleIntroResize);
+  reducedMotion.addEventListener("change", finishIntro);
+  logoMotion.finished.then(finishIntro, finishIntro);
+}
+
+function setMenuPanel(container, panelId) {
+  for (const panel of container.children) {
+    panel.hidden = panel.id !== panelId;
+    panel.inert = panel.hidden;
+  }
+}
+
 function showMenu(panelId, focusId) {
   if (panelId === "main-menu" && musicTrack?.name !== "mainmenu") playTrack("mainmenu");
   if (panelId === "closed-panel") playTrack(null);
-  for (const panel of menuScreen.children) panel.hidden = panel.id !== panelId;
+  setMenuPanel(menuScreen, panelId);
   if (focusId) byId(focusId).focus();
 }
 
@@ -1506,11 +1626,28 @@ function showWinners() {
   }
   byId("winners-empty").hidden = winners.length !== 0;
   byId("winners-storage").hidden = !sessionOnly;
+  byId("reset-winners").disabled = winners.length === 0;
   showMenu("winners-panel", "winners-title");
 }
 
+function resetWinners() {
+  if (!window.confirm("Hapus semua hasil di Daftar Pemenang pada perangkat ini?")) return;
+  try {
+    localStorage.removeItem(winnerKey);
+    sessionOnly = false;
+  } catch {
+    if (readWinners().length !== 0) {
+      window.alert("Daftar pemenang tersimpan tidak bisa dihapus.");
+      return;
+    }
+    sessionOnly = true;
+  }
+  sessionWinners = [];
+  showWinners();
+}
+
 function showPausePanel(panelId, titleId, focusId) {
-  for (const panel of pauseDialog.children) panel.hidden = panel.id !== panelId;
+  setMenuPanel(pauseDialog, panelId);
   pauseDialog.setAttribute("aria-labelledby", titleId);
   byId(focusId).focus({ preventScroll: true });
 }
@@ -1527,7 +1664,10 @@ function pauseGame(event) {
   syncMusicPlayback();
   cancelAnimationFrame(sceneFrame);
   sceneFrame = null;
-  pausedAnimations = document.getAnimations().filter(animation => animation.playState === "running");
+  pausedAnimations = document.getAnimations().filter(animation =>
+    animation.playState === "running" &&
+    !animation.effect?.target?.closest("#menu-screen, #pause-dialog")
+  );
   for (const animation of pausedAnimations) animation.pause();
   showPauseMenu();
   pauseDialog.showModal();
@@ -1573,6 +1713,12 @@ function leaveGame() {
   game = null;
   if (musicTrack?.name !== "mainmenu") playTrack(null);
   menuScreen.hidden = false;
+  menuScreen.inert = false;
+}
+
+function returnToMainMenu() {
+  leaveGame();
+  showMenu("main-menu", "start-menu");
 }
 
 function prepareGame(playerName) {
@@ -1595,10 +1741,7 @@ function confirmPauseAction(restart) {
     : restart ? "Progres saat ini akan dihapus dan semua nominal diacak kembali."
       : "Progres saat ini akan dihapus dan Anda akan kembali ke menu utama.";
   button.textContent = restart ? "Mulai ulang" : "Keluar Permainan";
-  button.onclick = restart ? () => prepareGame(game.playerName) : () => {
-    leaveGame();
-    showMenu("main-menu", "start-menu");
-  };
+  button.onclick = restart ? () => prepareGame(game.playerName) : returnToMainMenu;
   showPausePanel("pause-confirmation", "pause-confirmation-title", "pause-confirmation-title");
 }
 
@@ -1621,6 +1764,7 @@ byId("name-form").addEventListener("submit", event => {
 });
 byId("player-input").addEventListener("input", event => event.currentTarget.setCustomValidity(""));
 byId("winners-menu").addEventListener("click", showWinners);
+byId("reset-winners").addEventListener("click", resetWinners);
 byId("rules-menu").addEventListener("click", () => showMenu("rules-panel", "rules-title"));
 byId("settings-menu").addEventListener("click", () => showMenu("settings-panel", "settings-title"));
 byId("exit-menu").addEventListener("click", () => showMenu("exit-panel", "exit-title"));
@@ -1636,6 +1780,7 @@ for (const id of ["pause", "modal-pause"]) byId(id).addEventListener("click", pa
 byId("resume").addEventListener("click", resumeGame);
 byId("restart").addEventListener("click", () => confirmPauseAction(true));
 byId("exit-game").addEventListener("click", () => confirmPauseAction(false));
+byId("finished-exit").addEventListener("click", returnToMainMenu);
 byId("pause-settings").addEventListener("click", () => {
   showPausePanel("pause-settings-panel", "pause-settings-title", "pause-settings-title");
 });
@@ -1677,13 +1822,8 @@ dialog.addEventListener("cancel", event => {
   if (dialog.dataset.dismissible !== "true") event.preventDefault();
 });
 
+animateOpeningLogo();
 playTrack("mainmenu");
-byId("play-menu-music").addEventListener("click", () => {
-  musicEnabled = true;
-  syncMusicSettings();
-  saveMusicSettings();
-  syncMusicPlayback();
-});
 if (location.protocol !== "file:" && "serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(error => {
     console.warn("Service worker gagal didaftarkan.", error);

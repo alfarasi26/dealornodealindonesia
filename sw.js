@@ -1,7 +1,7 @@
 "use strict";
 
 const cachePrefix = "deal-or-no-deal:" + self.registration.scope + ":";
-const cacheName = cachePrefix + "v3";
+const cacheName = cachePrefix + "v4";
 const gamePage = new URL("./index.html", self.registration.scope).href;
 const gameRoot = self.registration.scope;
 const assetPaths = [
@@ -73,8 +73,11 @@ self.addEventListener("fetch", event => {
     let cached = await cache.match(key);
     if (request.mode === "navigate") {
       try {
-        const fresh = await fetch(request);
-        if (fresh.ok) return fresh;
+        const fresh = await fetch(request, { cache: "no-cache" });
+        if (fresh.ok) {
+          if (fresh.status === 200) await cache.put(key, fresh.clone()).catch(() => {});
+          return fresh;
+        }
       } catch {
         // The precached page is available when offline.
       }
